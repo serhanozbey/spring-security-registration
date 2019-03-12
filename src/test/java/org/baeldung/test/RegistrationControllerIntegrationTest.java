@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -52,6 +53,9 @@ public class RegistrationControllerIntegrationTest {
 
     private MockMvc mockMvc;
     private String token;
+    
+    @Autowired
+    JavaMailSender mailSender;
 
     @Before
     public void setUp() {
@@ -99,5 +103,17 @@ public class RegistrationControllerIntegrationTest {
         resultActions.andExpect(status().is(400));
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)).andExpect(jsonPath("$.error", is("InvaliduserDto")))
                 .andExpect(jsonPath("$.message", containsString("{\"field\":\"lastName\",\"defaultMessage\":\"Length must be greater than 1\"}")));
+    }
+    
+    @Test
+    public void successfullRegistrationTest() throws Exception {
+        final MultiValueMap<String, String> param = new LinkedMultiValueMap<>();
+        param.add("firstName", "Serhan");
+        param.add("lastName", "Serhan");
+        param.add("email", "ozbey.serhan@gmail.com");
+        param.add("password", "Serhan12*");
+        param.add("matchingPassword", "Serhan12*");
+        ResultActions resultActions = this.mockMvc.perform(post("/user/registration").params(param));
+        resultActions.andExpect(status().is2xxSuccessful());
     }
 }
